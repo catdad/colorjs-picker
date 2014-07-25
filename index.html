@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	
+	<!--meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/-->
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+	<!-- Apple web app tags -->
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<!-- vendor neutral web app tags -->
+	<meta name="mobile-web-app-capable" content="yes">
+
+	<!--link rel="shortcut icon" href="misc/picker_8704.png" /--> 
+	<!--link rel="shortcut icon" href="favicon.ico" /--> 
+	<link rel="apple-touch-icon" sizes="196x196" href="misc/brush_14813.png">
+	<link rel="icon" type="image/png" href="misc/brush_14813.png" />
+	<link rel="shortcut icon" sizes="196x196" href="misc/brush_14813.png">
+	<!-- favicon attribution
+		Eden Clairicia, from The Noun Project
+		http://thenounproject.com/noun/paint-brush/#icon-No14813
+	-->
+
+	<title>ColorJS</title>
+    <style>
+        html, body{ padding: 0; margin: 0; background: #eee; }
+        
+        .t-picker-gradient{
+            width: 360px;
+            height: 360px;
+        }
+        
+        .t-picker-gradient:after{ 
+            content: " "; 
+            background: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0)), to(rgba(0,0,0,1))); 
+            z-index: 1; position: absolute; top: 0; left: 0; width: 360px; height: 360px; }
+        
+        .t-picker-saturation{
+            
+        }
+        
+        .t-selector{
+            position: absolute;
+            top:0;
+            left:0;
+            width: 2px;
+            height: 2px;
+            padding: 5px;
+            border-radius: 15px;
+            border: 1px solid black;
+            transform: translate(-6px, -6px);
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="picker.js"></script>
+    
+    <div class='t-picker-gradient'><div class='t-selector' ></div></div>
+    <div class='t-picker-saturation'></div>
+</body>
+</html>

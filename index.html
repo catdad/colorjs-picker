@@ -22,13 +22,16 @@
 		http://thenounproject.com/noun/paint-brush/#icon-No14813
 	-->
 
+    <script src="http://catdad.github.io/tiny.cdn/lib/colorjs/0.1.0/color.min.js"></script>
+    
 	<title>ColorJS</title>
     <style>
-        html, body{ padding: 0; margin: 0; background: #eee; }
+        html, body{ padding: 0; margin: 0px; background: #eee; }
         
         .t-picker-gradient{
             width: 360px;
             height: 360px;
+            display: inline-block;
         }
         
         .t-picker-gradient:after{ 
@@ -44,15 +47,40 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 2px;
-            height: 2px;
-            padding: 4px;
-            border-radius: 15px;
             border: 2px solid black;
             box-shadow: 0 0 0 2px white, 0 0 10px 2px black;
-            transform: translate(-6px, -6px);
-            z-index: 2;
             -webkit-user-select: none;
+            z-index: 2;
+        }
+        
+        .t-hue-selector{
+            width: 10px;
+            height: 10px;
+            border-radius: 15px;
+            transform: translate3d(-6px, -6px, 0px);
+        }
+        
+        .t-saturation-selector{
+            width: 100%;
+            height: 6px;
+            border-radius: 1px;
+            transform: translate3d(-2px, -5px, 0px);
+        }
+        
+        .t-color{
+            width: 300px;
+            height: 300px;
+            background: red;
+            margin: 20px;
+        }
+        
+        .t-picker-saturation{
+            position: relative;
+            width: 30px;
+            height: 360px;
+            display: inline-block;
+            background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#000000));
+            outline: 1px solid #555;
         }
     </style>
 </head>
@@ -60,7 +88,9 @@
 <body>
     <script src="picker.js"></script>
     
-    <div class='t-picker-gradient'><div class='t-selector' ></div></div>
-    <div class='t-picker-saturation'></div>
+    <div class='t-picker-gradient'><div class='t-selector t-hue-selector' ></div></div>
+    <div class='t-picker-saturation'><div class='t-selector t-saturation-selector' ></div></div>
+    
+    <div class='t-color'></div>
 </body>
 </html>

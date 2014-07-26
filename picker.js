@@ -28,7 +28,7 @@ head.appendChild(style);
 
 // https://gist.github.com/catdad/9399313
 var ready = function(){
-    var translateTemplate = 'translate({{x}}px, {{y}}px)';
+    var translateTemplate = 'translate3d({{x}}px, {{y}}px, 0px)';
     var picker = document.querySelector('.t-picker-gradient');
     var selector = document.querySelector('.t-selector');
     
@@ -39,7 +39,7 @@ var ready = function(){
         
 //        console.log(x, y);
         
-        var translateText = translateTemplate.replace('{{x}}', x - 6).replace('{{y}}', y - 6);
+        var translateText = translateTemplate.replace('{{x}}', x - 7).replace('{{y}}', y - 7);
         selector.style.transform = translateText;
         
         

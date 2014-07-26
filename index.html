@@ -42,15 +42,17 @@
         
         .t-selector{
             position: absolute;
-            top:0;
-            left:0;
+            top: 0;
+            left: 0;
             width: 2px;
             height: 2px;
-            padding: 5px;
+            padding: 4px;
             border-radius: 15px;
-            border: 1px solid black;
+            border: 2px solid black;
+            box-shadow: 0 0 0 2px white, 0 0 10px 2px black;
             transform: translate(-6px, -6px);
-            cursor: pointer;
+            z-index: 2;
+            -webkit-user-select: none;
         }
     </style>
 </head>

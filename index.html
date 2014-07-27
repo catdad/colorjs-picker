@@ -28,16 +28,30 @@
     <style>
         html, body{ padding: 0; margin: 0px; background: #eee; }
         
-        .t-picker-gradient{
+        .t-picker-hue{
+            position: relative;
             width: 360px;
             height: 360px;
             display: inline-block;
         }
         
-        .t-picker-gradient:after{ 
-            content: " "; 
-            background: -webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,0)), to(rgba(0,0,0,1))); 
-            z-index: 1; position: absolute; top: 0; left: 0; width: 360px; height: 360px; }
+        .t-picker-value{ 
+            z-index: 1;
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 360px; 
+            height: 360px; 
+        }
+        
+        .t-picker-saturation{
+            position: relative;
+            width: 30px;
+            height: 360px;
+            display: inline-block;
+            background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#000000));
+            outline: 1px solid #555;
+        }
         
         .t-picker-saturation{
             
@@ -73,23 +87,13 @@
             background: red;
             margin: 20px;
         }
-        
-        .t-picker-saturation{
-            position: relative;
-            width: 30px;
-            height: 360px;
-            display: inline-block;
-            background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#000000));
-            outline: 1px solid #555;
-        }
     </style>
 </head>
 
 <body>
     <script src="picker.js"></script>
     
-    <div class='t-picker-gradient'><div class='t-selector t-hue-selector' ></div></div>
-    <div class='t-picker-saturation'><div class='t-selector t-saturation-selector' ></div></div>
+    <div id='myPicker'></div>
     
     <div class='t-color'></div>
 </body>

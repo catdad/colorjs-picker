@@ -118,20 +118,23 @@
     }
 
     function onmousedown(ev){
-
+//        ev.preventDefault();
         setSelectorLocation(ev);
 
         var onmousemove = function(ev){
+//            ev.preventDefault();
             setSelectorLocation(ev);
-
         };
+        
         var onmouseup = function(ev){
             DOM.huePicker.removeEventListener('mousemove', onmousemove);
             DOM.huePicker.removeEventListener('mouseup', onmouseup);
+//            DOM.huePicker.removeEventListener('mouseleave', onmouseup);
         };
 
         DOM.huePicker.addEventListener('mousemove', onmousemove);
         DOM.huePicker.addEventListener('mouseup', onmouseup);
+//        DOM.huePicker.addEventListener('mouseleave', onmouseup);
     }
 
     DOM.huePicker.addEventListener('mousedown', onmousedown);
@@ -142,15 +145,17 @@
 
         var onmousemove = function(ev){
             setSaturationSelector(ev);
-
         };
+        
         var onmouseup = function(ev){
             DOM.saturationPicker.removeEventListener('mousemove', onmousemove);
             DOM.saturationPicker.removeEventListener('mouseup', onmouseup);
+//            DOM.saturationPicker.removeEventListener('mouseleave', onmouseup);
         };
 
         DOM.saturationPicker.addEventListener('mousemove', onmousemove);
         DOM.saturationPicker.addEventListener('mouseup', onmouseup);
+//        DOM.saturationPicker.addEventListener('mouseleave', onmouseup);
     }
 
     DOM.saturationPicker.addEventListener('mousedown', onmousedownSat);

@@ -41,7 +41,7 @@
             top: 0; 
             left: 0; 
             width: 360px; 
-            height: 360px; 
+            height: 360px;
         }
         
         .t-picker-saturation{
@@ -51,6 +51,7 @@
             display: inline-block;
             background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#000000));
             outline: 1px solid #555;
+            margin: 0 0 0 10px;
         }
         
         .t-picker-saturation{
@@ -87,6 +88,8 @@
             background: red;
             margin: 20px;
         }
+        
+        #myPicker{ margin: 20px; }
     </style>
 </head>
 
@@ -96,5 +99,7 @@
     <div id='myPicker'></div>
     
     <div class='t-color'></div>
+    
+    <script>picker('#myPicker', '#ff0000')</script>
 </body>
 </html>

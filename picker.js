@@ -2,6 +2,59 @@
 /* global Color */
 
 !function(){
+    // https://gist.github.com/catdad/9acd13dd3a8a34a79de6
+    var EventEmitter = function(){
+        var events = {};
+        
+        this.on = function(name, callback){
+            events[name] = events[name] || [];
+            events[name].push(callback);
+            
+            return this;
+        };
+        
+        this.off = function(name, callback){
+            if (name in events === false) return this;
+            events[name].splice(events[name].indexOf(callback), 1);
+            return this;
+        };
+        
+        this.once = function(name, callback){
+            function disposable(){
+                this.off(name, disposable);
+                callback.apply(this, arguments);
+            }
+            
+            this.on(name, disposable);
+        };
+        
+        this.trigger = function(name){
+            var that = this;
+            var args = arguments;
+            if (name in events === false) return this;
+            events[name].forEach(function(fn){
+                fn.apply(that, [].slice.call(args, 1));
+            });
+        };
+        
+        this.asyncTrigger = function(name){
+            var args = arguments,
+                that = this;
+            setTimeout(function(){
+                that.trigger(args);
+            }, 0);
+        };
+    };
+}();
+
+!function(){
+    var prefix = (function(){
+        var styles = window.getComputedStyle(document.documentElement, '');
+        var matches = [].slice.call(styles).join(' ').match(/-(moz|webkit|ms|o)-/);
+        return (matches) ? matches.shift() : null;    
+    })();
+    console.log('browser prefix:', prefix);
+    
     var colors = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff', '#ff0000'];
     
     var percent = 100 / (colors.length - 1);
@@ -224,7 +277,7 @@
 
     
     // TODO
-    // - move CSS inside JS file
+    // - ability to make Picker instances
     // - clean up area above DOM
     // - remove saturation outline and create better layout
     // - add color change events

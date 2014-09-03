@@ -17,12 +17,24 @@
     var hueGradientTemplate = '-webkit-linear-gradient(left, ' + gradient + ')';
     var saturationGradientTemplate = '-webkit-gradient(linear, left top, left bottom, from({{from}}), to({{to}}))';
     var valueGradientTemplate = '-webkit-gradient(linear, left top, left bottom, from(rgba(255,255,255,{{saturation}})), to(rgba(0,0,0,1)))'; 
-
+    var translateTemplate = 'translate3d({{x}}px, {{y}}px, 0px)';
+    
     // hue gradient
     var css = '.t-picker-hue{ background-image: ' + hueGradientTemplate + ';}';
     // lightness gradient
     css += '.t-picker-value{ background-image: ' + valueGradientTemplate.replace('{{saturation}}', 0) + '; }';
-
+    // saturation gradient
+    css += '.t-picker-saturation{ background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#000000)); }';
+    
+    
+    css += '.t-picker-hue{ position: relative; display: inline-block; }';
+    css += '.t-picker-value{ z-index: 1; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }';
+    css += '.t-picker-saturation{ position: relative; display: inline-block; margin: 0 0 0 10px; }';
+    
+    css += '.t-selector{ position: absolute; top: 0; left: 0; border: 2px solid black; box-shadow: 0 0 0 2px white, 0 0 10px 2px black; -webkit-user-select: none; z-index: 2; }';
+    css += '.t-hue-selector{ width: 10px; height: 10px; border-radius: 15px; transform: translate3d(-6px, -6px, 0px); }';
+    css += '.t-saturation-selector{ width: 100%; height: 6px; border-radius: 1px; transform: translate3d(-2px, -5px, 0px); }';
+    
     //insert CSS into the stylesheet and head
     (style.styleSheet) ? style.styleSheet.cssText = css : style.appendChild(document.createTextNode(css));
     //insert stylesheet into head
@@ -32,8 +44,6 @@
     
     // fix mess above ^^^^^
     
-    
-    var translateTemplate = 'translate3d({{x}}px, {{y}}px, 0px)';
     
     var Div = function(className){
         var div = document.createElement('div');
@@ -232,19 +242,4 @@
     //check for when the document is ready
     if (document.addEventListener) document.addEventListener('readystatechange', readyCheck, false);
     else document.attachEvent('onreadystatechange', readyCheck);
-
 }();
-
-/*
-var colors = [
-    #ff0000,
-    #ffff00,
-    #00ff00,
-    #00ffff,
-    #0000ff,
-    #ff00ff,
-    #ff0000
-];
-
-var percent = 100 / colors.length;
-*/

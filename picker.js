@@ -111,6 +111,27 @@
         div.className = className;
         return div;
     }
+    
+    function getEventPosition(ev, offsetBB){
+        var x, y;
+        switch(ev.type) {
+            case 'touchstart':
+            case 'touchmove':
+            case 'touchend':
+                var touch = ev.changedTouches[0];
+                x = touch.pageX - offsetBB.left;
+                y = touch.pageY - offsetBB.top;
+                break;
+            case 'mousedown':
+            case 'mousemove':
+            case 'mouseup':
+                x = ev.layerX || ev.clientX - offsetBB.left;
+                y = ev.layerY || ev.clientY - offsetBB.top;
+                break;
+        }
+
+        return { x: x, y: y };
+    }
 
     // ***************************
     // PICKER MODULE
@@ -172,9 +193,12 @@
         }
         
         function setSelectorLocation(ev){
-            var x = ev.layerX || ev.clientX - DOM.huePickerBB.left;
-            var y = ev.layerY || ev.clientY - DOM.huePickerBB.top;
-
+            console.log(ev);
+            
+            var position = getEventPosition(ev, DOM.huePickerBB),
+                x = position.x,
+                y = position.y;
+            
             if (x > DOM.huePickerBB.width) x = DOM.huePickerBB.width;
             else if (x < 0) x = 0;
             if (y > DOM.huePickerBB.height) y = DOM.huePickerBB.height;
@@ -189,8 +213,9 @@
         }
 
         function setSaturationSelector(ev){
-            var y = ev.layerY || ev.clientY - DOM.huePickerBB.top;
-
+            var position = getEventPosition(ev, DOM.saturationPickerBB),
+                y = position.y;
+            
             if (y > DOM.saturationPickerBB.height) y = DOM.saturationPickerBB.height;
             else if (y < 0) y = 0;
 
@@ -210,7 +235,9 @@
 
             var onend = function(ev){
                 DOM.huePicker.removeEventListener('mousemove', onmove);
+                DOM.huePicker.removeEventListener('touchmove', onmove);
                 DOM.huePicker.removeEventListener('mouseup', onend);
+                DOM.huePicker.removeEventListener('touchend', onend);
                 DOM.huePicker.removeEventListener('mouseleave', onend);
             };
 
@@ -218,7 +245,9 @@
             
             // register move and end listeners
             DOM.huePicker.addEventListener('mousemove', onmove);
+            DOM.huePicker.addEventListener('touchmove', onmove);
             DOM.huePicker.addEventListener('mouseup', onend);
+            DOM.huePicker.addEventListener('touchend', onend);
             DOM.huePicker.addEventListener('mouseleave', onend);
         }
         
@@ -230,7 +259,9 @@
 
             var onend = function(ev){
                 DOM.saturationPicker.removeEventListener('mousemove', onmove);
+                DOM.saturationPicker.removeEventListener('touchmove', onmove);
                 DOM.saturationPicker.removeEventListener('mouseup', onend);
+                DOM.saturationPicker.removeEventListener('touchend', onend);
                 DOM.saturationPicker.removeEventListener('mouseleave', onend);
             };
 
@@ -238,13 +269,17 @@
             
             // register move and end listeners
             DOM.saturationPicker.addEventListener('mousemove', onmove);
+            DOM.saturationPicker.addEventListener('touchmove', onmove);
             DOM.saturationPicker.addEventListener('mouseup', onend);
+            DOM.saturationPicker.addEventListener('touchend', onend);
             DOM.saturationPicker.addEventListener('mouseleave', onend);
         }
         
         // register start listeners
         DOM.huePicker.addEventListener('mousedown', onHueStart);
+        DOM.huePicker.addEventListener('touchstart', onHueStart);
         DOM.saturationPicker.addEventListener('mousedown', onSaturationStart);
+        DOM.saturationPicker.addEventListener('touchstart', onSaturationStart);
 
         // initialization functions
         function initSelectors(){
@@ -309,10 +344,6 @@
     // TODO
     // - clean up area above DOM
     // - create better layout
-    // - optimize mouse events for animation frames
-    // - add touch event handling as well
-    // - multi-browser support
-    
     
     
     // not sure if this is needed anymore

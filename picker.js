@@ -2,6 +2,7 @@
 /* global Color */
 
 !function(){
+    // Events module
     // https://gist.github.com/catdad/9acd13dd3a8a34a79de6
     var EventEmitter = function(){
         var events = {};
@@ -31,8 +32,7 @@
         };
 
         this.trigger = function(name){
-            var that = this,
-                args = arguments;
+            var that = this, args = arguments;
             name = name.toLowerCase();
 
             if (name in events === false) return this;
@@ -42,25 +42,25 @@
         };
 
         this.asyncTrigger = function(name){
-            var args = arguments,
-                that = this;
+            var args = arguments, that = this;
             setTimeout(function(){
                 that.trigger.apply(that, args);
             }, 0);
         };
     };
     
-//}();
-//
-//!function(){
-    
+    // browser CSS prefix module
+    // https://gist.github.com/catdad/cd88c43d916e4602ad1a
     var prefix = (function(){
         var styles = window.getComputedStyle(document.documentElement, '');
         var matches = [].slice.call(styles).join(' ').match(/-(moz|webkit|ms|o)-/);
-        return (matches) ? matches.shift() : null;    
+        return (matches) ? matches.shift() : null;
     })();
     console.log('browser prefix:', prefix);
     
+    // ***********************
+    // CREATE CSS
+    // ***********************
     var colors = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff', '#ff0000'];
     
     var percent = 100 / (colors.length - 1);
@@ -99,9 +99,6 @@
     //insert stylesheet into head
     head.appendChild(style);
 
-    
-    
-    // fix mess above ^^^^^
     // ***************************
     // HELPERS
     // ***************************
@@ -115,13 +112,15 @@
         return div;
     }
 
-    
-    
+    // ***************************
+    // PICKER MODULE
+    // ***************************
     var Picker = function(domElem, value){
         if (typeof domElem === 'string') {
             domElem = document.querySelector(domElem);   
         }
         
+        // inherit from EventEmitter
         EventEmitter.call(this);
         var that = this;
         
@@ -143,12 +142,14 @@
         var h = 0, s = 0, v = 100;
         
         function setColor(){
+            // calculate new color
             var color = Color.fromHSV({
                 h: h,
                 s: 1 - (s/100),
                 v: 1 - (v/100)
             });
 
+            // calculate from and to colors for saturation gradient
             var fromColor = Color.fromHSV({
                 h: h,
                 s: 1,
@@ -164,10 +165,10 @@
             DOM.saturationPicker.style.backgroundImage = saturationGradientTemplate.replace('{{from}}', fromColor.CSS()).replace('{{to}}', toColor.CSS());
             // set value gradient
             DOM.valuePicker.style.backgroundImage = valueGradientTemplate.replace('{{saturation}}', (s/100));
-
             // note: hue gradient never changes
             
-            that.asyncTrigger('colorchange', color.CSS());
+            // fire ColorChange event
+            that.asyncTrigger(pickerGlobal.Event.ColorChange, color.CSS());
         }
         
         function setSelectorLocation(ev){
@@ -201,46 +202,49 @@
         }
         
         // add event listeners
-        function onmousedown(ev){
-            ev.preventDefault();
-            setSelectorLocation(ev);
-
-            var onmousemove = function(ev){
+        function onHueStart(event){
+            var onmove = function(ev){
                 ev.preventDefault();
                 setSelectorLocation(ev);
             };
 
-            var onmouseup = function(ev){
-                DOM.huePicker.removeEventListener('mousemove', onmousemove);
-                DOM.huePicker.removeEventListener('mouseup', onmouseup);
-                DOM.huePicker.removeEventListener('mouseleave', onmouseup);
+            var onend = function(ev){
+                DOM.huePicker.removeEventListener('mousemove', onmove);
+                DOM.huePicker.removeEventListener('mouseup', onend);
+                DOM.huePicker.removeEventListener('mouseleave', onend);
             };
 
-            DOM.huePicker.addEventListener('mousemove', onmousemove);
-            DOM.huePicker.addEventListener('mouseup', onmouseup);
-            DOM.huePicker.addEventListener('mouseleave', onmouseup);
+            onmove(event);
+            
+            // register move and end listeners
+            DOM.huePicker.addEventListener('mousemove', onmove);
+            DOM.huePicker.addEventListener('mouseup', onend);
+            DOM.huePicker.addEventListener('mouseleave', onend);
         }
         
-        function onmousedownSat(ev){
-            setSaturationSelector(ev);
-
-            var onmousemove = function(ev){
+        function onSaturationStart(event){
+            var onmove = function(ev){
+                ev.preventDefault();
                 setSaturationSelector(ev);
             };
 
-            var onmouseup = function(ev){
-                DOM.saturationPicker.removeEventListener('mousemove', onmousemove);
-                DOM.saturationPicker.removeEventListener('mouseup', onmouseup);
-                DOM.saturationPicker.removeEventListener('mouseleave', onmouseup);
+            var onend = function(ev){
+                DOM.saturationPicker.removeEventListener('mousemove', onmove);
+                DOM.saturationPicker.removeEventListener('mouseup', onend);
+                DOM.saturationPicker.removeEventListener('mouseleave', onend);
             };
 
-            DOM.saturationPicker.addEventListener('mousemove', onmousemove);
-            DOM.saturationPicker.addEventListener('mouseup', onmouseup);
-            DOM.saturationPicker.addEventListener('mouseleave', onmouseup);
+            onmove(event);
+            
+            // register move and end listeners
+            DOM.saturationPicker.addEventListener('mousemove', onmove);
+            DOM.saturationPicker.addEventListener('mouseup', onend);
+            DOM.saturationPicker.addEventListener('mouseleave', onend);
         }
         
-        DOM.huePicker.addEventListener('mousedown', onmousedown);
-        DOM.saturationPicker.addEventListener('mousedown', onmousedownSat);
+        // register start listeners
+        DOM.huePicker.addEventListener('mousedown', onHueStart);
+        DOM.saturationPicker.addEventListener('mousedown', onSaturationStart);
 
         // initialization functions
         function initSelectors(){
@@ -252,9 +256,11 @@
             var satY = (s/100) * DOM.saturationPickerBB.height;
 
             DOM.saturationSelector.style.transform = translateTemplate.replace('{{x}}', -2).replace('{{y}}', satY - 5);
+            
+            setColor();
         }
         
-        function init(val){
+        function initColor(val){
             var color;
             if (typeof val === 'string') color = Color(val);
             else if (val.v !== undefined) color = Color.fromHSV(val);
@@ -266,7 +272,6 @@
             s = (1 - hsv.s) * 100;
             v = (1 - hsv.v) * 100;
 
-            setColor();
             initSelectors();
         }
         
@@ -285,26 +290,28 @@
         DOM.saturationPickerBB = DOM.saturationPicker.getBoundingClientRect();
         
         // set initial color if requested
-        value && init(value);
+        (value) ? initColor(value) : initSelectors();
     };
+    // inherit from EventEmitter
     Picker.prototype = new EventEmitter();
     
     // register the Picker class globally
     // let's make it so 'new' is not needed
-    window.Picker = function(domElem, value){
+    var pickerGlobal = window.Picker = function(domElem, value){
         return new Picker(domElem, value);
+    };
+    
+    pickerGlobal.Event = {
+        ColorChange: 'ColorChange'   
     };
     
     
     // TODO
-    // - ability to make Picker instances
     // - clean up area above DOM
-    // - remove saturation outline and create better layout
-    // - add color change events
+    // - create better layout
     // - optimize mouse events for animation frames
-    // - add touch event hadnling as well
+    // - add touch event handling as well
     // - multi-browser support
-    
     
     
     

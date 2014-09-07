@@ -28,30 +28,31 @@
     <style>
         html, body{ padding: 0; margin: 0px; background: #eee; }
         
-        .t-picker-hue{
-            width: 360px;
-            height: 360px;
-        }
-        
-        .t-picker-saturation{
-            width: 30px;
-            height: 360px;
-        }
-        
-        
-        
-        
+        /* size for the main picker and a preview */
         .preview{
-            width: 300px;
-            height: 300px;
-            background: red;
+            width: 150px;
+            height: 150px;
+            padding: 50px;
             margin: 20px;
+            text-align: center;
+            text-shadow: 0px 0px 25px white, 0 0 10px white;
+            font-weight: bold;
+            font-family: sans-serif;
         }
-        
         #myPicker{ 
             margin: 20px;
             height: 360px;
             width: 420px;
+        }
+        
+        /* provide sizes for large color picker and small saturation slider */
+        .t-picker-hue{
+            width: 360px;
+            height: 360px;
+        }
+        .t-picker-saturation{
+            width: 30px;
+            height: 360px;
         }
     </style>
 </head>
@@ -66,11 +67,11 @@
     <script>
 //        var picker = Picker('#myPicker', '#ff0000');
         var picker = Picker('#myPicker', '#bada55');
+//        var picker = Picker('#myPicker');
         
         var colorPreview = document.querySelector('.preview');
         
-        picker.on('colorchange', function(css){
-            
+        picker.on(Picker.Event.ColorChange, function(css){
             colorPreview.style.background = css;
             colorPreview.innerHTML = css;
         });

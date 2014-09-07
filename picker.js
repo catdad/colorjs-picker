@@ -5,49 +5,55 @@
     // https://gist.github.com/catdad/9acd13dd3a8a34a79de6
     var EventEmitter = function(){
         var events = {};
-        
+
         this.on = function(name, callback){
+            name = name.toLowerCase();
             events[name] = events[name] || [];
             events[name].push(callback);
-            
+
             return this;
         };
-        
+
         this.off = function(name, callback){
+            name = name.toLowerCase();
             if (name in events === false) return this;
             events[name].splice(events[name].indexOf(callback), 1);
             return this;
         };
-        
+
         this.once = function(name, callback){
             function disposable(){
                 this.off(name, disposable);
                 callback.apply(this, arguments);
             }
-            
+
             this.on(name, disposable);
         };
-        
+
         this.trigger = function(name){
-            var that = this;
-            var args = arguments;
+            var that = this,
+                args = arguments;
+            name = name.toLowerCase();
+
             if (name in events === false) return this;
             events[name].forEach(function(fn){
                 fn.apply(that, [].slice.call(args, 1));
             });
         };
-        
+
         this.asyncTrigger = function(name){
             var args = arguments,
                 that = this;
             setTimeout(function(){
-                that.trigger(args);
+                that.trigger.apply(that, args);
             }, 0);
         };
     };
-}();
-
-!function(){
+    
+//}();
+//
+//!function(){
+    
     var prefix = (function(){
         var styles = window.getComputedStyle(document.documentElement, '');
         var matches = [].slice.call(styles).join(' ').match(/-(moz|webkit|ms|o)-/);
@@ -96,163 +102,173 @@
     
     
     // fix mess above ^^^^^
+    // ***************************
+    // HELPERS
+    // ***************************
+    function isDomNode (o) {
+        return o && o.nodeType === 1;   
+    }
     
-    
-    var Div = function(className){
+    function Div(className){
         var div = document.createElement('div');
         div.className = className;
         return div;
-    };
+    }
 
     
-    var DOM = {
-        huePicker: Div('t-picker-hue'),
-        valuePicker: Div('t-picker-value'),
-        saturationPicker: Div('t-picker-saturation'),
-        
-        hueSelector: Div('t-selector t-hue-selector'),
-        saturationSelector: Div('t-selector t-saturation-selector'),
-        
-        huePickerBB: {},
-        saturationPickerBB: {},
-        
-        // temp
-        colorPreview: undefined
-    };
     
-    var h = 0, s = 0, v = 100;
+    var Picker = function(domElem, value){
+        if (typeof domElem === 'string') {
+            domElem = document.querySelector(domElem);   
+        }
+        
+        EventEmitter.call(this);
+        var that = this;
+        
+        // check to make sure we have an actual DOM node
+        if (!isDomNode(domElem)) throw new TypeError(domElem + ' is not an HTMLElement');
+        
+        var DOM = {
+            huePicker: Div('t-picker-hue'),
+            valuePicker: Div('t-picker-value'),
+            saturationPicker: Div('t-picker-saturation'),
 
-    function setColor(){
-        var color = Color.fromHSV({
-            h: h,
-            s: 1 - (s/100),
-            v: 1 - (v/100)
-        });
+            hueSelector: Div('t-selector t-hue-selector'),
+            saturationSelector: Div('t-selector t-saturation-selector'),
 
-        DOM.colorPreview.style.background = color.CSS();
-        DOM.colorPreview.innerHTML = color.CSS();
+            huePickerBB: {},
+            saturationPickerBB: {}
+        };
+        
+        var h = 0, s = 0, v = 100;
+        
+        function setColor(){
+            var color = Color.fromHSV({
+                h: h,
+                s: 1 - (s/100),
+                v: 1 - (v/100)
+            });
 
-        var fromColor = Color.fromHSV({
-            h: h,
-            s: 1,
-            v: 1 - (v/100)
-        });
-        var toColor = Color.fromHSV({
-            h: h,
-            s: 0,
-            v: 1 - (v/100)
-        });
+            var fromColor = Color.fromHSV({
+                h: h,
+                s: 1,
+                v: 1 - (v/100)
+            });
+            var toColor = Color.fromHSV({
+                h: h,
+                s: 0,
+                v: 1 - (v/100)
+            });
 
-        // set saturation gradient
-        DOM.saturationPicker.style.backgroundImage = saturationGradientTemplate.replace('{{from}}', fromColor.CSS()).replace('{{to}}', toColor.CSS());
-        // set value gradient
-        DOM.valuePicker.style.backgroundImage = valueGradientTemplate.replace('{{saturation}}', (s/100));
+            // set saturation gradient
+            DOM.saturationPicker.style.backgroundImage = saturationGradientTemplate.replace('{{from}}', fromColor.CSS()).replace('{{to}}', toColor.CSS());
+            // set value gradient
+            DOM.valuePicker.style.backgroundImage = valueGradientTemplate.replace('{{saturation}}', (s/100));
 
-        // note: hue gradient never changes
-    }
+            // note: hue gradient never changes
+            
+            that.asyncTrigger('colorchange', color.CSS());
+        }
+        
+        function setSelectorLocation(ev){
+            var x = ev.layerX || ev.clientX - DOM.huePickerBB.left;
+            var y = ev.layerY || ev.clientY - DOM.huePickerBB.top;
 
-    function setSelectorLocation(ev){
-        var x = ev.layerX || ev.clientX - DOM.huePickerBB.left;
-        var y = ev.layerY || ev.clientY - DOM.huePickerBB.top;
+            if (x > DOM.huePickerBB.width) x = DOM.huePickerBB.width;
+            else if (x < 0) x = 0;
+            if (y > DOM.huePickerBB.height) y = DOM.huePickerBB.height;
+            else if (y < 0) y = 0;
 
-        if (x > DOM.huePickerBB.width) x = DOM.huePickerBB.width;
-        else if (x < 0) x = 0;
-        if (y > DOM.huePickerBB.height) y = DOM.huePickerBB.height;
-        else if (y < 0) y = 0;
+            h = (x/DOM.huePickerBB.width) * 360;
+            v = (y/DOM.huePickerBB.height) * 100;
 
-        h = (x/DOM.huePickerBB.width) * 360;
-        v = (y/DOM.huePickerBB.height) * 100;
+            setColor();
 
-        setColor();
+            DOM.hueSelector.style.transform = translateTemplate.replace('{{x}}', x - 7).replace('{{y}}', y - 7);
+        }
 
-        DOM.hueSelector.style.transform = translateTemplate.replace('{{x}}', x - 7).replace('{{y}}', y - 7);
-    }
+        function setSaturationSelector(ev){
+            var y = ev.layerY || ev.clientY - DOM.huePickerBB.top;
 
-    function setSaturationSelector(ev){
-        var y = ev.layerY || ev.clientY - DOM.huePickerBB.top;
+            if (y > DOM.saturationPickerBB.height) y = DOM.saturationPickerBB.height;
+            else if (y < 0) y = 0;
 
-        if (y > DOM.saturationPickerBB.height) y = DOM.saturationPickerBB.height;
-        else if (y < 0) y = 0;
+            s = (y/DOM.saturationPickerBB.height) * 100;
 
-        s = (y/DOM.saturationPickerBB.height) * 100;
+            setColor();
 
-        setColor();
-
-        DOM.saturationSelector.style.transform = translateTemplate.replace('{{x}}', -2).replace('{{y}}', y - 5);
-    }
-
-    function onmousedown(ev){
-        ev.preventDefault();
-        setSelectorLocation(ev);
-
-        var onmousemove = function(ev){
+            DOM.saturationSelector.style.transform = translateTemplate.replace('{{x}}', -2).replace('{{y}}', y - 5);
+        }
+        
+        // add event listeners
+        function onmousedown(ev){
             ev.preventDefault();
             setSelectorLocation(ev);
-        };
+
+            var onmousemove = function(ev){
+                ev.preventDefault();
+                setSelectorLocation(ev);
+            };
+
+            var onmouseup = function(ev){
+                DOM.huePicker.removeEventListener('mousemove', onmousemove);
+                DOM.huePicker.removeEventListener('mouseup', onmouseup);
+                DOM.huePicker.removeEventListener('mouseleave', onmouseup);
+            };
+
+            DOM.huePicker.addEventListener('mousemove', onmousemove);
+            DOM.huePicker.addEventListener('mouseup', onmouseup);
+            DOM.huePicker.addEventListener('mouseleave', onmouseup);
+        }
         
-        var onmouseup = function(ev){
-            DOM.huePicker.removeEventListener('mousemove', onmousemove);
-            DOM.huePicker.removeEventListener('mouseup', onmouseup);
-            DOM.huePicker.removeEventListener('mouseleave', onmouseup);
-        };
-
-        DOM.huePicker.addEventListener('mousemove', onmousemove);
-        DOM.huePicker.addEventListener('mouseup', onmouseup);
-        DOM.huePicker.addEventListener('mouseleave', onmouseup);
-    }
-
-    DOM.huePicker.addEventListener('mousedown', onmousedown);
-
-    function onmousedownSat(ev){
-
-        setSaturationSelector(ev);
-
-        var onmousemove = function(ev){
+        function onmousedownSat(ev){
             setSaturationSelector(ev);
-        };
+
+            var onmousemove = function(ev){
+                setSaturationSelector(ev);
+            };
+
+            var onmouseup = function(ev){
+                DOM.saturationPicker.removeEventListener('mousemove', onmousemove);
+                DOM.saturationPicker.removeEventListener('mouseup', onmouseup);
+                DOM.saturationPicker.removeEventListener('mouseleave', onmouseup);
+            };
+
+            DOM.saturationPicker.addEventListener('mousemove', onmousemove);
+            DOM.saturationPicker.addEventListener('mouseup', onmouseup);
+            DOM.saturationPicker.addEventListener('mouseleave', onmouseup);
+        }
         
-        var onmouseup = function(ev){
-            DOM.saturationPicker.removeEventListener('mousemove', onmousemove);
-            DOM.saturationPicker.removeEventListener('mouseup', onmouseup);
-            DOM.saturationPicker.removeEventListener('mouseleave', onmouseup);
-        };
+        DOM.huePicker.addEventListener('mousedown', onmousedown);
+        DOM.saturationPicker.addEventListener('mousedown', onmousedownSat);
 
-        DOM.saturationPicker.addEventListener('mousemove', onmousemove);
-        DOM.saturationPicker.addEventListener('mouseup', onmouseup);
-        DOM.saturationPicker.addEventListener('mouseleave', onmouseup);
-    }
+        // initialization functions
+        function initSelectors(){
+            var hueX = (h/360) * DOM.huePickerBB.width;
+            var hueY = (v/100) * DOM.huePickerBB.height;
 
-    DOM.saturationPicker.addEventListener('mousedown', onmousedownSat);
+            DOM.hueSelector.style.transform = translateTemplate.replace('{{x}}', hueX - 7).replace('{{y}}', hueY - 7);
 
-    function initSelectors(){
-        var hueX = (h/360) * DOM.huePickerBB.width;
-        var hueY = (v/100) * DOM.huePickerBB.height;
+            var satY = (s/100) * DOM.saturationPickerBB.height;
 
-        DOM.hueSelector.style.transform = translateTemplate.replace('{{x}}', hueX - 7).replace('{{y}}', hueY - 7);
+            DOM.saturationSelector.style.transform = translateTemplate.replace('{{x}}', -2).replace('{{y}}', satY - 5);
+        }
+        
+        function init(val){
+            var color;
+            if (typeof val === 'string') color = Color(val);
+            else if (val.v !== undefined) color = Color.fromHSV(val);
+            else color = Color('#ff0000');
 
-        var satY = (s/100) * DOM.saturationPickerBB.height;
+            var hsv = color.HSV();
 
-        DOM.saturationSelector.style.transform = translateTemplate.replace('{{x}}', -2).replace('{{y}}', satY - 5);
-    }
+            h = hsv.h;
+            s = (1 - hsv.s) * 100;
+            v = (1 - hsv.v) * 100;
 
-    function init(val){
-        var color;
-        if (typeof val === 'string') color = Color(val);
-        else if (val.v !== undefined) color = Color.fromHSV(val);
-        else color = Color('#ff0000');
-
-        var hsv = color.HSV();
-
-        h = hsv.h;
-        s = (1 - hsv.s) * 100;
-        v = (1 - hsv.v) * 100;
-
-        setColor();
-        initSelectors();
-    }
-    
-    window.picker = function initPicker(dom, val){
-        if (typeof dom === 'string') dom = document.querySelector(dom);
+            setColor();
+            initSelectors();
+        }
         
         // build DOM
         DOM.huePicker.appendChild(DOM.valuePicker);
@@ -260,21 +276,25 @@
         
         DOM.saturationPicker.appendChild(DOM.saturationSelector);
         
-        dom.appendChild(DOM.huePicker);
-        dom.appendChild(DOM.saturationPicker);
+        domElem.appendChild(DOM.huePicker);
+        domElem.appendChild(DOM.saturationPicker);
         
         // get sizes
         // for now, we'll assume that these will never change
         DOM.huePickerBB = DOM.huePicker.getBoundingClientRect();
         DOM.saturationPickerBB = DOM.saturationPicker.getBoundingClientRect();
         
-        // temp
-        DOM.colorPreview = document.querySelector('.t-color');
-        
-        
-        val && init(val);
+        // set initial color if requested
+        value && init(value);
     };
-
+    Picker.prototype = new EventEmitter();
+    
+    // register the Picker class globally
+    // let's make it so 'new' is not needed
+    window.Picker = function(domElem, value){
+        return new Picker(domElem, value);
+    };
+    
     
     // TODO
     // - ability to make Picker instances
